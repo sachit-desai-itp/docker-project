@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visitor Feedback</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f4f7fb;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      width: 100%;
+      max-width: 480px;
+      box-sizing: border-box;
+    }
+    h1 {
+      font-family: 'Roboto', sans-serif;
+      font-weight: 700;
+      color: #4a90e2;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    label {
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1.25rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+    button {
+      background-color: #4a90e2;
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+    button:hover {
+      background-color: #357ab7;
+    }
+    .response {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-weight: 500;
+    }
+    .feedback-list {
+      margin-top: 2rem;
+      padding: 0;
+      list-style: none;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .feedback-item {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+      padding: 1rem;
+    }
+    .feedback-item h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: #4a90e2;
+    }
+    .feedback-item p {
+      margin: 0.5rem 0;
+    }
+    .feedback-item time {
+      font-size: 0.875rem;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Visitor Feedback</h1>
+    <form id="feedbackForm">
+      <label for="name">Your Name</label>
+      <input type="text" id="name" name="name" placeholder="Enter your name" required />
+      
+      <label for="message">Your Feedback</label>
+      <textarea id="message" name="message" placeholder="Share your thoughts" required></textarea>
+      
+      <button type="submit">Submit Feedback</button>
+      <button type="button" id="showFeedbackBtn">Show All Feedback</button>
+    </form>
+    <div id="responseMessage" class="response"></div>
+    <ul id="feedbackList" class="feedback-list"></ul>
+  </div>
+
+  <script>
+    const form = document.getElementById('feedbackForm');
+    const responseMessage = document.getElementById('responseMessage');
+    const feedbackList = document.getElementById('feedbackList');
+    const showFeedbackBtn = document.getElementById('showFeedbackBtn');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const name = form.name.value.trim();
+      const message = form.message.value.trim();
+
+      if (!name || !message) {
+        responseMessage.textContent = "Please fill in both fields.";
+        responseMessage.style.color = 'red';
+        return;
+      }
+
+      try {
+        const res = await fetch('/submit-feedback', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({name, message})
+        });
+        const data = await res.json();
+        if (data.status === "success") {
+          responseMessage.textContent = "Thank you for your feedback!";
+          responseMessage.style.color = 'green';
+          form.reset();
+        } else {
+          responseMessage.textContent = "Error: " + data.error;
+          responseMessage.style.color = 'red';
+        }
+      } catch (error) {
+        responseMessage.textContent = "Network error: " + error.message;
+        responseMessage.style.color = 'red';
+      }
+    });
+
+    showFeedbackBtn.addEventListener('click', async () => {
+      try {
+        const res = await fetch('/get-feedback');
+        const feedbacks = await res.json();
+        feedbackList.innerHTML = '';
+        feedbacks.forEach(feedback => {
+          const li = document.createElement('li');
+          li.classList.add('feedback-item');
+          li.innerHTML = `
+            <h3>${feedback.name}</h3>
+            <p>${feedback.message}</p>
+            <time>${feedback.submitted_at}</time>
+          `;
+          feedbackList.appendChild(li);
+        });
+      } catch (error) {
+        responseMessage.textContent = "Failed to load feedback: " + error.message;
+        responseMessage.style.color = 'red';
+      }
+    });
+  </script>
+</body>
+</html>
