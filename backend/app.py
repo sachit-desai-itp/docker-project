@@ -23,6 +23,10 @@ def root_redirect():
     # Redirect to your S3 static site or frontend URL
     return redirect(os.getenv("FRONTEND_URL", "http://sachit-frontend.s3-website-us-east-1.amazonaws.com"), code=302)
 
+@app.route("/health")
+def health_check():
+    return "OK", 200
+
 @app.route("/create-tables")
 def create_tables():
     try:
