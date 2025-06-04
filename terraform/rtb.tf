@@ -48,5 +48,5 @@ resource "aws_route_table_association" "db_association" {
   }
 
   subnet_id      = aws_subnet.sachit_subnets[each.key].id
-  route_table_id = aws_route_table.sachit_app_rtb.id
+  route_table_id = aws_route_table.sachit_db_rtb.id
 }

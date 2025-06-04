@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, redirect
 from dotenv import load_dotenv
 import os
 import psycopg2
@@ -11,6 +11,13 @@ def get_db_connection():
     return psycopg2.connect(
         host=os.getenv("DB_HOST"),
         database=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASS")
+    )
+def create_db_sachit():
+    return psycopg2.connect(
+        host=os.getenv("DB_HOST"),
+        database="postgres",
         user=os.getenv("DB_USER"),
         password=os.getenv("DB_PASS")
     )
@@ -36,6 +43,25 @@ def create_tables():
         cur.close()
         conn.close()
         return {"status": "success", "message": "Tables created successfully"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
+    
+@app.route("/create-db")
+def create_db():
+    try:
+        # Connect to the default 'postgres' DB to create a new one
+        conn = psycopg2.connect(
+            host=os.getenv("DB_HOST"),
+            database="postgres",  # must use existing DB
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASS")
+        )
+        conn.autocommit = True
+        cur = conn.cursor()
+        cur.execute("CREATE DATABASE sachit;")
+        cur.close()
+        conn.close()
+        return {"status": "success", "message": "Database 'sachit' created"}
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
 
