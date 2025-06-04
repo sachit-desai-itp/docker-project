@@ -1,11 +1,14 @@
-from flask import Flask, request, jsonify, send_from_directory, redirect
+from flask import Flask, request, jsonify, redirect, render_template
 from dotenv import load_dotenv
 import os
 import psycopg2
+from flask_cors import CORS
+
 
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 
 def get_db_connection():
     return psycopg2.connect(
@@ -14,17 +17,11 @@ def get_db_connection():
         user=os.getenv("DB_USER"),
         password=os.getenv("DB_PASS")
     )
-def create_db_sachit():
-    return psycopg2.connect(
-        host=os.getenv("DB_HOST"),
-        database="postgres",
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASS")
-    )
 
 @app.route("/")
-def serve_index():
-    return send_from_directory('../frontend', 'index.html')
+def root_redirect():
+    # Redirect to your S3 static site or frontend URL
+    return redirect(os.getenv("FRONTEND_URL", "http://sachit-frontend.s3-website-us-east-1.amazonaws.com"), code=302)
 
 @app.route("/create-tables")
 def create_tables():
@@ -45,14 +42,13 @@ def create_tables():
         return {"status": "success", "message": "Tables created successfully"}
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
-    
+
 @app.route("/create-db")
 def create_db():
     try:
-        # Connect to the default 'postgres' DB to create a new one
         conn = psycopg2.connect(
             host=os.getenv("DB_HOST"),
-            database="postgres",  # must use existing DB
+            database="postgres",
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASS")
         )
@@ -87,7 +83,7 @@ def submit_feedback():
         return jsonify({"status": "success", "message": "Feedback submitted"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
 @app.route("/get-feedback", methods=["GET"])
 def get_feedback():
     try:
@@ -106,7 +102,5 @@ def get_feedback():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False, host="0.0.0.0", port=5000)

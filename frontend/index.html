@@ -117,6 +117,10 @@
   </div>
 
   <script>
+    // TODO: Replace with your actual backend API ALB DNS or custom domain (including protocol)
+    // const API_BASE = "https://your-flask-api-alb-dns-or-domain";
+    const API_BASE = "http://localhost:5000";
+
     const form = document.getElementById('feedbackForm');
     const responseMessage = document.getElementById('responseMessage');
     const feedbackList = document.getElementById('feedbackList');
@@ -135,7 +139,7 @@
       }
 
       try {
-        const res = await fetch('/submit-feedback', {
+        const res = await fetch(`${API_BASE}/submit-feedback`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({name, message})
@@ -146,7 +150,7 @@
           responseMessage.style.color = 'green';
           form.reset();
         } else {
-          responseMessage.textContent = "Error: " + data.error;
+          responseMessage.textContent = "Error: " + (data.error || "Unknown error");
           responseMessage.style.color = 'red';
         }
       } catch (error) {
@@ -157,7 +161,7 @@
 
     showFeedbackBtn.addEventListener('click', async () => {
       try {
-        const res = await fetch('/get-feedback');
+        const res = await fetch(`${API_BASE}/get-feedback`);
         const feedbacks = await res.json();
         feedbackList.innerHTML = '';
         feedbacks.forEach(feedback => {

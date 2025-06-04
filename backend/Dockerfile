@@ -1,20 +1,27 @@
-# Use official Python slim image
+# Use official Python image
 FROM python:3.11-slim
 
-# Set working directory inside container
+# Set working directory
 WORKDIR /app
 
-# Install system dependencies required for psycopg2 and build tools
-RUN apt-get update && apt-get install -y gcc libpq-dev && rm -rf /var/lib/apt/lists/*
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python dependencies
-COPY backend/requirements.txt requirements.txt
+# Copy Python requirements and install them
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend app source code
-COPY backend/ .
+# Copy the rest of the app code
+COPY . .
 
-# Expose port 5000 (Flask default)
+# Expose the port Flask runs on
 EXPOSE 5000
 
-CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
+# Set environment variables (can also be done in ECS)
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Run the app
+CMD ["python", "app.py"]
