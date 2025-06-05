@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Expose the port Flask runs on
-EXPOSE 5000
+EXPOSE 80
 
 # Set environment variables (can also be done in ECS)
 ENV PYTHONDONTWRITEBYTECODE=1 \
